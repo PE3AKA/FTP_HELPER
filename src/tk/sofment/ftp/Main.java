@@ -11,15 +11,29 @@ import java.io.*;
 public class Main {
 
     private static FtpClient ftpClient;
-    static String pathToProject = "";
+    private static String pathToProject = "";
+    private static String SPLASH = "/";
+
+
+    private static void checkOperatingSystem(){
+        String os = System.getProperty("os.name").toLowerCase();
+        System.out.println("OS:" + os);
+        if(os != null && os.indexOf("win") >= 0){
+            SPLASH = "\\";
+        }
+    }
 
     public static void main(String[] args) {
+        checkOperatingSystem();
 
         if(args.length == 1)
             pathToProject = args[0];
         else {
             pathToProject = System.getProperty("user.dir");
         }
+
+        System.out.println("PathToProject:" + pathToProject);
+
         String version = getAttributeByName("android:versionName");
         String packageName = getAttributeByName("package");
 
@@ -31,37 +45,44 @@ public class Main {
         try {
             downloadPhpFile();
         } catch (Exception ex){
+            ex.printStackTrace();
         }
         try {
             readFile(packageName, "-1");
         } catch (Exception ex){
+            ex.printStackTrace();
         }
         try {
             ftpClient = null;
             ftpClient = new FtpClient("sofment.tk", 21, "u446421256", "_online_cinema_0101");
             uploadPhpFile();
         } catch (Exception ex){
+            ex.printStackTrace();
         }
         try {
             ftpClient = null;
             ftpClient = new FtpClient("sofment.tk", 21, "u446421256", "_online_cinema_0101");
             uploadApk();
         } catch (Exception ex){
+            ex.printStackTrace();
         }
         try {
             readFile(packageName, version);
         } catch (Exception ex){
+            ex.printStackTrace();
         }
         try {
             ftpClient = null;
             ftpClient = new FtpClient("sofment.tk", 21, "u446421256", "_online_cinema_0101");
             uploadPhpFile();
         } catch (Exception ex){
+            ex.printStackTrace();
         }
     }
 
     private static void uploadApk() {
-        ftpClient.uploadFile(pathToProject + "/out/production/online-cinema/online-cinema.apk", "json/online-cinema/current/online-cinema.apk");
+        ftpClient.uploadFile(pathToProject +SPLASH+ "out"+SPLASH+"production"+SPLASH+"online-cinema"+SPLASH+"online-cinema.apk",
+                "json"+SPLASH+"online-cinema"+SPLASH+"current"+SPLASH+"online-cinema.apk");
     }
 
     private static void readFile(String packageName, String version) {
@@ -70,11 +91,11 @@ public class Main {
         inputStreamReader = null;
         BufferedReader bufferedReader = null;
         FileWriter fw = null;
-        File file = new File(pathToProject + "/appsToUpload.php");
+        File file = new File(pathToProject + SPLASH+"appsToUpload.php");
         if(file.exists()) file.delete();
         try {
             file.createNewFile();
-            inputStream = new FileInputStream(pathToProject + "/apps.php");
+            inputStream = new FileInputStream(pathToProject + SPLASH+"apps.php");
             inputStreamReader = new InputStreamReader(inputStream);
             bufferedReader = new BufferedReader(inputStreamReader);
 
@@ -97,7 +118,7 @@ public class Main {
             }
 
         } catch (Exception ex){
-
+            System.out.println("Exception:" + ex.getMessage());
         } finally {
             if (fw != null) {
                 try {
@@ -131,12 +152,16 @@ public class Main {
     }
 
     private static void downloadPhpFile() {
-        ftpClient.downloadFile(pathToProject + "/apps.php", "json/online-cinema/apps.php");
+        if(ftpClient == null){
+            System.out.println("FtpClient is null");
+            return;
+        }
+        ftpClient.downloadFile(pathToProject + SPLASH + "apps.php", "json/online-cinema/apps.php");
     }
 
     private static String getAttributeByName(String name) {
         try {
-            File fXmlFile = new File(pathToProject + "/" + "AndroidManifest.xml");
+            File fXmlFile = new File(pathToProject + SPLASH+ "AndroidManifest.xml");
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = null;
             dBuilder = dbFactory.newDocumentBuilder();
@@ -151,6 +176,6 @@ public class Main {
     }
 
     private static void uploadPhpFile() {
-        ftpClient.uploadFile(pathToProject + "/appsToUpload.php", "json/online-cinema/apps.php");
+        ftpClient.uploadFile(pathToProject + SPLASH + "appsToUpload.php", "json"+SPLASH+"online-cinema"+SPLASH+"apps.php");
     }
 }
